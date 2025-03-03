@@ -1,5 +1,5 @@
 use crate::error::UnsupportedLumpVersion;
-use crate::{lzma_decompress_with_header, Angles, BspError, FixedString, Vector};
+use crate::{Angles, BspError, FixedString, Vector, lzma_decompress_with_header};
 use binrw::{BinRead, BinReaderExt, BinResult, Endian};
 use bitflags::bitflags;
 use std::borrow::Cow;
@@ -144,7 +144,7 @@ impl BinRead for StaticPropLump {
         args: Self::Args<'static>,
     ) -> BinResult<Self> {
         match args.0 {
-            4..=7 | 10 => {
+            4..=7 | 10 | 11 => {
                 RawStaticPropLump::read_options(reader, endian, (args.0,)).map(StaticPropLump::from)
             }
             version => Err(binrw::Error::Custom {
@@ -194,27 +194,77 @@ pub enum SolidType {
 #[derive(BinRead)]
 #[br(import(version: u16))]
 struct RawStaticPropLump {
+    #[br(if(version >= 4))]
     pub origin: Vector,
+
+    #[br(if(version >= 4))]
     pub angles: Angles,
+
+    #[br(if(version >= 4))]
     pub prop_type: u16,
+
+    #[br(if(version >= 4))]
     pub first_leaf: u16,
+
+    #[br(if(version >= 4))]
     pub leaf_count: u16,
+
+    #[br(if(version >= 4))]
     pub solid: SolidType,
+
+    #[br(if(version != 7))]
     pub flags_u8: u8,
+
+    #[br(if(version >= 4))]
     pub skin: i32,
+
+    #[br(if(version >= 4))]
     pub fade_min_distance: f32,
+
+    #[br(if(version >= 4))]
     pub fade_max_distance: f32,
+
+    #[br(if(version >= 4))]
     pub lighting_origin: Vector,
+
     #[br(if(version >= 5))]
     pub forced_fade_scale: f32,
-    #[br(if(version >= 6))]
+
+    #[br(if(version == 6 || version == 7))]
     pub min_dx_level: u16,
-    #[br(if(version >= 6))]
+
+    #[br(if(version == 6 || version == 7))]
     pub max_dx_level: u16,
-    #[br(if(version >= 7))]
+
+    #[br(if(version == 7))]
     pub flags: StaticPropLumpFlags,
-    #[br(if(version >= 7))]
+
+    #[br(if(version == 7))]
     pub lightmap_resolution: [u16; 2],
+
+    #[br(if(version >= 8))]
+    pub min_cpu_level: u8,
+
+    #[br(if(version >= 8))]
+    pub max_cpu_level: u8,
+
+    #[br(if(version >= 8))]
+    pub min_gpu_level: u8,
+
+    #[br(if(version >= 8))]
+    pub max_gpu_level: u8,
+
+    #[br(if(version >= 7))]
+    pub diffuse_modulation: [u8; 4],
+
+    #[br(if(version == 9 || version == 10 || version == 11))]
+    pub disable_x360: u32, // version 11 isn't supposed to have this...?
+
+    #[br(if(version >= 10))]
+    pub flags_ex: u32,
+
+    #[br(if(version >= 11))]
+    pub uniform_scale: f32,
 }
 
 #[test]

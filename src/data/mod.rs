@@ -25,8 +25,8 @@ use std::mem::size_of;
 use std::ops::Index;
 use std::sync::Mutex;
 pub use vbsp_common::{Angles, Color, EntityProp, LightColor, Negated, PropPlacement, Vector};
-use zip::result::ZipError;
 use zip::ZipArchive;
+use zip::result::ZipError;
 
 /// Validate that reading the type consumes `size_of::<T>()` bytes
 #[cfg(test)]
@@ -78,6 +78,7 @@ impl Index<LumpType> for Directories {
 pub enum BspVersion {
     Version19 = 19,
     Version20 = 20,
+    Version21 = 21,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, BinRead)]
